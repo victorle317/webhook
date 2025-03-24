@@ -1,14 +1,22 @@
 const { validateWebhook } = require('replicate');
 
-const verifyWebhookSignature = async (req) => {
+// Express middleware function
+const verifyWebhookSignature = async (req, res, next) => {
     const secret = 'whsec_VrOSsHOdnkpPY0DsBZyofW3SIrDgxj0n';
-    const request = new Request(req.url, {
-        method: req.method,
-        headers: new Headers(req.headers),
-        body: JSON.stringify(req.body)
-    });
+
+    // Use a default host if req.get('host') is undefined
+    const host = req.get('host') || 'localhost:3000';
+    const protocol = req.protocol || 'http';
+    const fullUrl = `${protocol}://${host}${req.originalUrl}`;
 
     try {
+        // Construct Request object from Express request
+        const request = new Request(fullUrl, {
+            method: req.method,
+            headers: new Headers(req.headers),
+            body: JSON.stringify(req.body)
+        });
+
         // Validate the webhook using Replicate's official function
         const isValid = await validateWebhook(
             request,
@@ -16,16 +24,16 @@ const verifyWebhookSignature = async (req) => {
         );
 
         if (!isValid) {
-          console.log("Webhook is invalid" );
-        }else{
-            console.log("Webhook is valid!");
+            console.log("Webhook is invalid");
+            return res.status(401).json({ detail: "Invalid webhook signature" });
         }
 
-        return isValid;
-        
+        console.log("Webhook is valid!");
+        next(); // Proceed to next middleware/route handler
+
     } catch (error) {
         console.error('Error validating webhook:', error);
-      
+        return res.status(500).json({ detail: "Error validating webhook" });
     }
 };
 
@@ -68,5 +76,4 @@ const verifyWebhookSignature = async (req) => {
 //     ]
 //   }
 
-
-module.exports = verifyWebhookSignature
+module.exports = verifyWebhookSignature;
