@@ -2,7 +2,7 @@ const { validateWebhook } = require('replicate');
 
 // Express middleware function
 const verifyWebhookSignature = async (req, res, next) => {
-    const secret = 'whsec_VrOSsHOdnkpPY0DsBZyofW3SIrDgxj0n';
+    const secret = process.env.REPLICATE_WEBHOOK_SECRET;
 
     // Use a default host if req.get('host') is undefined
     const host = req.get('host') || 'localhost:3000';
