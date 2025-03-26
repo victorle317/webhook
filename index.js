@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const verifyWebhookSignature = require('./v');
+const { saveOutputToSpaces } = require('./services/storageService');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -10,7 +11,7 @@ app.use(express.json());
 
 
 // Webhook route
-app.post('/webhook/replicate', verifyWebhookSignature, (req, res) => {
+app.post('/webhook/replicate', verifyWebhookSignature, async (req, res) => {
     try {
         // Get the webhook data from request body
         const webhookData = req.body;
@@ -18,14 +19,27 @@ app.post('/webhook/replicate', verifyWebhookSignature, (req, res) => {
         // Log the webhook data
         console.log('Received webhook:', webhookData);
         console.log(JSON.stringify(webhookData, null, 2));
-        
+
 
         // Handle different prediction states
         if (webhookData.error) {
             // Handle failed prediction
             console.log('Prediction failed:', webhookData.error);
         } else if (webhookData.output !== null) {
-            // Handle completed prediction
+            // Handle completed prediction with file saving
+            const outputUrl = Array.isArray(webhookData.output)
+                ? webhookData.output[0]  // If output is an array, take first item
+                : webhookData.output;    // If output is a single URL
+
+            if (outputUrl) {
+                try {
+                    const spacesUrl = await saveOutputToSpaces(outputUrl, webhookData.id);
+                    console.log('Image saved to Spaces:', spacesUrl);
+                } catch (storageError) {
+                    console.error('Failed to save image to Spaces:', storageError);
+                }
+            }
+
             console.log('Prediction completed:', {
                 id: webhookData.id,
                 model: webhookData.model,
