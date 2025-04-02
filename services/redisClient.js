@@ -6,7 +6,7 @@ const redisClient = new Redis({
   port: process.env.REDIS_PORT,
   username: process.env.REDIS_USER,
   password: process.env.REDIS_PWD,
-  tls: true,
+  tls: false,
   maxRetriesPerRequest: null,
   retryStrategy: function (times) {
     const delay = Math.min(times * 50, 2000);

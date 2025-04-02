@@ -3,12 +3,29 @@ const { client: redisClient, checkConnection } = require('./redisClient');
 const PREDICTION_KEY_PREFIX = 'prediction:';
 const ALL_PREDICTIONS_KEY = 'all_predictions';
 
+// Cache expiration times in seconds
+const CACHE_EXPIRATION = {
+    starting: 3600,      // 1 hour
+    processing: 3600,    // 1 hour
+    succeeded: 86400,    // 24 hours
+    succeeded_with_error: 86400, // 24 hours
+    failed: 86400,       // 24 hours
+    canceled: 3600,      // 1 hour
+    unknown: 3600        // 1 hour
+};
+
 // Helper function to ensure Redis connection
 const ensureConnection = async () => {
     const isConnected = await checkConnection();
     if (!isConnected) {
         throw new Error('Redis connection failed');
     }
+};
+
+// Helper function to set expiration
+const setExpiration = async (key, status) => {
+    const expiration = CACHE_EXPIRATION[status] || CACHE_EXPIRATION.unknown;
+    await redisClient.expire(key, expiration);
 };
 
 const cacheService = {
@@ -25,25 +42,15 @@ const cacheService = {
             // Store individual prediction
             await redisClient.set(key, JSON.stringify(predictionData));
 
+            // Set expiration based on status
+            await setExpiration(key, data.status || 'unknown');
+
             // Add to set of all predictions
             await redisClient.sadd(ALL_PREDICTIONS_KEY, predictionId);
 
             return predictionData;
         } catch (error) {
             console.error('[CacheService] Error setting prediction:', error);
-            throw error;
-        }
-    },
-
-    // Get prediction data
-    getPrediction: async (predictionId) => {
-        try {
-            await ensureConnection();
-            const key = `${PREDICTION_KEY_PREFIX}${predictionId}`;
-            const data = await redisClient.get(key);
-            return data ? JSON.parse(data) : null;
-        } catch (error) {
-            console.error('[CacheService] Error getting prediction:', error);
             throw error;
         }
     },
@@ -63,9 +70,26 @@ const cacheService = {
             };
 
             await redisClient.set(key, JSON.stringify(updatedData));
+
+            // Update expiration based on new status
+            await setExpiration(key, status);
+
             return updatedData;
         } catch (error) {
             console.error('[CacheService] Error updating prediction status:', error);
+            throw error;
+        }
+    },
+
+    // Get prediction data
+    getPrediction: async (predictionId) => {
+        try {
+            await ensureConnection();
+            const key = `${PREDICTION_KEY_PREFIX}${predictionId}`;
+            const data = await redisClient.get(key);
+            return data ? JSON.parse(data) : null;
+        } catch (error) {
+            console.error('[CacheService] Error getting prediction:', error);
             throw error;
         }
     },
@@ -195,6 +219,86 @@ const cacheService = {
             return statusInfo;
         } catch (error) {
             console.error('[CacheService] Error checking prediction status:', error);
+            throw error;
+        }
+    },
+
+    // Purge all predictions from Redis
+    purgeAllPredictions: async () => {
+        try {
+            await ensureConnection();
+
+            // Get all prediction IDs
+            const predictionIds = await redisClient.smembers(ALL_PREDICTIONS_KEY);
+
+            if (predictionIds.length === 0) {
+                return {
+                    success: true,
+                    message: 'No predictions found to purge',
+                    purgedCount: 0
+                };
+            }
+
+            // Delete all prediction keys
+            const keys = predictionIds.map(id => `${PREDICTION_KEY_PREFIX}${id}`);
+            await redisClient.del(...keys);
+
+            // Clear the set of all predictions
+            await redisClient.del(ALL_PREDICTIONS_KEY);
+
+            return {
+                success: true,
+                message: `Successfully purged ${predictionIds.length} predictions`,
+                purgedCount: predictionIds.length
+            };
+        } catch (error) {
+            console.error('[CacheService] Error purging all predictions:', error);
+            throw error;
+        }
+    },
+
+    // Purge predictions by status
+    purgePredictionsByStatus: async (status) => {
+        try {
+            await ensureConnection();
+
+            // Get all predictions
+            const predictions = await cacheService.getAllPredictions();
+
+            // Filter predictions by status
+            const predictionsToPurge = predictions.filter(pred => pred.status === status);
+
+            if (predictionsToPurge.length === 0) {
+                return {
+                    success: true,
+                    message: `No predictions found with status: ${status}`,
+                    purgedCount: 0
+                };
+            }
+
+            // Delete predictions
+            const keys = predictionsToPurge.map(pred => `${PREDICTION_KEY_PREFIX}${pred.id}`);
+            await redisClient.del(...keys);
+
+            // Update the set of all predictions
+            const remainingIds = predictions
+                .filter(pred => pred.status !== status)
+                .map(pred => pred.id);
+
+            if (remainingIds.length > 0) {
+                await redisClient.del(ALL_PREDICTIONS_KEY);
+                await redisClient.sadd(ALL_PREDICTIONS_KEY, ...remainingIds);
+            } else {
+                await redisClient.del(ALL_PREDICTIONS_KEY);
+            }
+
+            return {
+                success: true,
+                message: `Successfully purged ${predictionsToPurge.length} predictions with status: ${status}`,
+                purgedCount: predictionsToPurge.length
+            };
+        } catch (error) {
+            console.error('[CacheService] Error purging predictions by status:', error);
             throw error;
         }
     }

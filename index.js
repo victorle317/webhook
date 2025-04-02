@@ -50,7 +50,7 @@ app.post('/webhook/replicate', verifyWebhookSignature, async (req, res) => {
 
                 if (outputUrl) {
                     try {
-                        const spacesUrl = await saveOutputToSpaces(outputUrl, predictionId);
+                        const spacesUrl = await saveOutputToSpaces(outputUrl, predictionId, webhookData.input.output_format);
                         console.log('Image saved to Spaces:', spacesUrl);
                         // Update cache with spaces URL
                         // save all data to redis
@@ -104,7 +104,7 @@ app.post('/webhook/replicate', verifyWebhookSignature, async (req, res) => {
 });
 
 // Add endpoint to get prediction status
-app.get('/predictions/:id', async (req, res) => {
+app.get('/:id', async (req, res) => {
     try {
         const predictionId = req.params.id;
         const prediction = await cacheService.getPrediction(predictionId);
@@ -121,7 +121,7 @@ app.get('/predictions/:id', async (req, res) => {
 });
 
 // Add endpoint to get all predictions
-app.get('/predictions', async (req, res) => {
+app.get('/', async (req, res) => {
     try {
         const predictions = await cacheService.getAllPredictions();
         res.json(predictions);
@@ -132,7 +132,7 @@ app.get('/predictions', async (req, res) => {
 });
 
 // Add endpoint to get predictions by status
-app.get('/predictions/status/:status', async (req, res) => {
+app.get('/status/:status', async (req, res) => {
     try {
         const { status } = req.params;
         const predictions = await cacheService.getPredictionsByStatus(status);
@@ -144,7 +144,7 @@ app.get('/predictions/status/:status', async (req, res) => {
 });
 
 // Add endpoint to delete prediction
-app.delete('/predictions/:id', async (req, res) => {
+app.delete('/:id', async (req, res) => {
     try {
         const predictionId = req.params.id;
         await cacheService.deletePrediction(predictionId);
@@ -156,7 +156,7 @@ app.delete('/predictions/:id', async (req, res) => {
 });
 
 // Add endpoint to check prediction status
-// app.get('/predictions/:id/status', async (req, res) => {
+// app.get('/:id/status', async (req, res) => {
 //     try {
 //         const predictionId = req.params.id;
 //         const statusInfo = await cacheService.checkPredictionStatus(predictionId);
@@ -171,6 +171,37 @@ app.delete('/predictions/:id', async (req, res) => {
 //         res.status(500).json({ detail: "Internal server error" });
 //     }
 // });
+
+// Add endpoint to purge all predictions
+app.delete('/purge/all', async (req, res) => {
+    try {
+        const result = await cacheService.purgeAllPredictions();
+        res.json(result);
+    } catch (error) {
+        console.error('Error purging all predictions:', error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to purge predictions",
+            error: error.message
+        });
+    }
+});
+
+// Add endpoint to purge predictions by status
+app.delete('/purge/status/:status', async (req, res) => {
+    try {
+        const { status } = req.params;
+        const result = await cacheService.purgePredictionsByStatus(status);
+        res.json(result);
+    } catch (error) {
+        console.error('Error purging predictions by status:', error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to purge predictions",
+            error: error.message
+        });
+    }
+});
 
 // Health check route
 app.get('/health', (req, res) => {
