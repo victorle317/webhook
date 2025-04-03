@@ -1,11 +1,36 @@
 require('dotenv').config();
 const express = require('express');
+var {connect} = require('mongoose');
 const verifyWebhookSignature = require('./verifyWebhook');
 const { saveOutputToSpaces } = require('./services/storageService');
 const cacheService = require('./services/cacheService');
+const { Generation } = require('./model/generation');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+//db connection
+// Database connection configuration
+const connectDB = async () => {
+    try {
+      const options = {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+        autoIndex: true, // Build indexes
+      };
+  
+      await connect(process.env.DB_URL);
+      console.log('✅ Successfully connected to MongoDB.');
+    } catch (error) {
+      console.error('❌ MongoDB connection error:', error.message);
+      // Exit process with failure if this is critical to your application
+      process.exit(1);
+    }
+  };
+  
+  // Initialize database connection
+connectDB();
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -13,16 +38,22 @@ app.use(express.json());
 // Webhook route
 app.post('/webhook/replicate', verifyWebhookSignature, async (req, res) => {
     try {
-        // Get the webhook data from request body
         const webhookData = req.body;
         const predictionId = webhookData.id;
 
-        // Log the webhook data
         console.log('Received webhook:', webhookData);
 
+        // Find or create a Generation document
+        let generation = await Generation.findOne({ predictionId });
+        // if (!generation) {
+        //     generation = new Generation({ 
+        //         predictionId,
+        //         status: webhookData.status,
+        //         model: webhookData.model,
+        //         replicateRawOutput: webhookData
+        //     });
+        // }
 
-
-        // Handle different prediction states based on Replicate's standard status values
         switch (webhookData.status) {
             case 'starting':
                 console.log('Prediction starting:', {
@@ -31,6 +62,11 @@ app.post('/webhook/replicate', verifyWebhookSignature, async (req, res) => {
                     started_at: webhookData.started_at
                 });
                 await cacheService.updatePredictionStatus(predictionId, 'starting');
+                
+                // Update MongoDB
+                generation.status = 'starting';
+                generation.replicateRawOutput = webhookData;
+                await generation.save();
                 break;
 
             case 'processing':
@@ -40,30 +76,47 @@ app.post('/webhook/replicate', verifyWebhookSignature, async (req, res) => {
                     started_at: webhookData.started_at
                 });
                 await cacheService.updatePredictionStatus(predictionId, 'processing');
+                
+                // Update MongoDB
+                generation.status = 'processing';
+                generation.replicateRawOutput = webhookData;
+                await generation.save();
                 break;
 
             case 'succeeded':
-                // Handle completed prediction with file saving
                 const outputUrl = Array.isArray(webhookData.output)
-                    ? webhookData.output[0]  // If output is an array, take first item
-                    : webhookData.output;    // If output is a single URL
+                    ? webhookData.output[0]
+                    : webhookData.output;
 
                 if (outputUrl) {
                     try {
                         const spacesUrl = await saveOutputToSpaces(outputUrl, predictionId, webhookData.input.output_format);
                         console.log('Image saved to Spaces:', spacesUrl);
-                        // Update cache with spaces URL
-                        // save all data to redis
+                        
                         await cacheService.updatePredictionStatus(predictionId, 'succeeded', {
                             ...webhookData,
                             spacesUrl
                         });
+
+                        // Update MongoDB
+                        generation.status = 'succeeded';
+                        generation.url = spacesUrl;
+                        generation.replicateUrl = outputUrl;
+                        generation.replicateRawOutput = webhookData;
+                        await generation.save();
                     } catch (storageError) {
                         console.error('Failed to save image to Spaces:', storageError);
                         await cacheService.updatePredictionStatus(predictionId, 'succeeded_with_error', {
                             output: webhookData.output,
                             storageError: storageError.message
                         });
+
+                        // Update MongoDB with error
+                        generation.status = 'succeeded_with_error';
+                        generation.error = storageError.message;
+                        generation.replicateUrl = outputUrl;
+                        generation.replicateRawOutput = webhookData;
+                        await generation.save();
                     }
                 }
 
@@ -80,6 +133,12 @@ app.post('/webhook/replicate', verifyWebhookSignature, async (req, res) => {
                 await cacheService.updatePredictionStatus(predictionId, 'failed', {
                     error: webhookData.error
                 });
+
+                // Update MongoDB
+                generation.status = 'failed';
+                generation.error = webhookData.error;
+                generation.replicateRawOutput = webhookData;
+                await generation.save();
                 break;
 
             case 'canceled':
@@ -88,14 +147,23 @@ app.post('/webhook/replicate', verifyWebhookSignature, async (req, res) => {
                     model: webhookData.model
                 });
                 await cacheService.updatePredictionStatus(predictionId, 'canceled');
+
+                // Update MongoDB
+                generation.status = 'canceled';
+                generation.replicateRawOutput = webhookData;
+                await generation.save();
                 break;
 
             default:
                 console.log('Unknown prediction state:', webhookData);
                 await cacheService.updatePredictionStatus(predictionId, 'unknown');
+
+                // Update MongoDB
+                generation.status = 'unknown';
+                generation.replicateRawOutput = webhookData;
+                await generation.save();
         }
 
-        // Send success response
         res.status(200).json({ detail: "Webhook received successfully" });
     } catch (error) {
         console.error('Error processing webhook:', error);
