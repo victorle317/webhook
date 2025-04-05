@@ -103,7 +103,6 @@ app.post('/webhook/replicate', verifyWebhookSignature, async (req, res) => {
 
                         await generation.save();
                         await cacheService.updatePredictionStatus(predictionId, 'succeeded', {
-                            ...webhookData,
                             url : spacesUrl,
                             replicateUrl : outputUrl,
                             replicateRawOutput : webhookData,
