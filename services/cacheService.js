@@ -36,7 +36,6 @@ const cacheService = {
             const key = `${PREDICTION_KEY_PREFIX}${predictionId}`;
             const predictionData = {
                 ...data,
-                lastUpdated: new Date().toISOString()
             };
 
             // Store individual prediction
@@ -66,7 +65,6 @@ const cacheService = {
                 ...existingData,
                 ...data,
                 status,
-                lastUpdated: new Date().toISOString()
             };
 
             await redisClient.set(key, JSON.stringify(updatedData));

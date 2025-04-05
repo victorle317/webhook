@@ -75,12 +75,15 @@ app.post('/webhook/replicate', verifyWebhookSignature, async (req, res) => {
                     model: webhookData.model,
                     started_at: webhookData.started_at
                 });
-                await cacheService.updatePredictionStatus(predictionId, 'processing');
-                
                 // Update MongoDB
                 generation.status = 'processing';
                 generation.replicateRawOutput = webhookData;
+
                 await generation.save();
+                await cacheService.updatePredictionStatus(predictionId, 'processing',{
+                    replicateRawOutput : webhookData,
+                }); 
+                
                 break;
 
             case 'succeeded':
@@ -92,31 +95,39 @@ app.post('/webhook/replicate', verifyWebhookSignature, async (req, res) => {
                     try {
                         const spacesUrl = await saveOutputToSpaces(outputUrl, predictionId, webhookData.input.output_format);
                         console.log('Image saved to Spaces:', spacesUrl);
-                        
-                        await cacheService.updatePredictionStatus(predictionId, 'succeeded', {
-                            ...webhookData,
-                            spacesUrl
-                        });
-
                         // Update MongoDB
                         generation.status = 'succeeded';
                         generation.url = spacesUrl;
                         generation.replicateUrl = outputUrl;
                         generation.replicateRawOutput = webhookData;
+
                         await generation.save();
-                    } catch (storageError) {
-                        console.error('Failed to save image to Spaces:', storageError);
-                        await cacheService.updatePredictionStatus(predictionId, 'succeeded_with_error', {
-                            output: webhookData.output,
-                            storageError: storageError.message
+                        await cacheService.updatePredictionStatus(predictionId, 'succeeded', {
+                            ...webhookData,
+                            url : spacesUrl,
+                            replicateUrl : outputUrl,
+                            replicateRawOutput : webhookData,
+                            spacesUrl
                         });
 
+
+                    } catch (storageError) {
+                        console.error('Failed to save image to Spaces:', storageError);
                         // Update MongoDB with error
                         generation.status = 'succeeded_with_error';
                         generation.error = storageError.message;
                         generation.replicateUrl = outputUrl;
                         generation.replicateRawOutput = webhookData;
                         await generation.save();
+
+                        await cacheService.updatePredictionStatus(predictionId, 'succeeded_with_error', {
+                            output: webhookData.output,
+                            error : storageError.message,
+                            replicateUrl : outputUrl,
+                            replicateRawOutput : webhookData,
+                        });
+
+
                     }
                 }
 
