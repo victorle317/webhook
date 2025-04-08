@@ -54,6 +54,4 @@ generationSchema.index({ createdAt: -1 });
 const Generation = mongoose.model('Generation', generationSchema);
 
 // Update the exports
-module.exports = {
-    Generation,
-};
+module.exports = Generation
