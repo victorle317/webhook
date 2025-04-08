@@ -1,0 +1,3 @@
+const baseData = '(ultra photorealistic), high quality nikon RAW color professional photo,(detailed face:1.2), ((high detailed skin:0.9)), modelshoot style, DLSR, art photographer, photographed on a FUJIFILM GFX 100S Camera, Fujifilm GF 63mm lens, F/6 aperture, tele angle, highly detailed (analog photography), (film grain:0.5), sharp outline, ((sharp focus on face)), ((sharp focus on body)), (depth of field), award winning photo, POV, 8K, UHD, key light, backlit, diffused soft light, soft lighting, lens flare, natural warm lighting, light from above, (strong front main lighting), crystal clear, high res, photorealistic, depth layering, physically-based rendering'
+
+module.exports = baseData

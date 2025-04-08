@@ -1,4 +1,4 @@
-const { client: redisClient, checkConnection } = require('./redisClient');
+const { client: redisClient, checkConnection } = require('../queue/redisClient');
 
 const PREDICTION_KEY_PREFIX = 'prediction:';
 const ALL_PREDICTIONS_KEY = 'all_predictions';

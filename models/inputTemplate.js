@@ -17,6 +17,10 @@ const inputTemplateSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    go_fast: {
+        type: Boolean,
+        default: false
+    },
     isSelfTrained: {
         type: Boolean,
         default: null

@@ -18,14 +18,14 @@ const s3 = new AWS.S3({
  * @param {string} predictionId - The prediction ID to use in the filename
  * @returns {Promise<string>} - The URL of the uploaded file in Spaces
  */
-const saveOutputToSpaces = async (imageUrl, predictionId, format) => {
+const saveOutputToSpaces = async (imageUrl, predictionId) => {
     try {
         // Download the image
         const imageBuffer = await downloadImage(imageUrl);
 
         // Generate a unique filename
         const timestamp = Date.now();
-        const filename = `predictions/${predictionId}-${timestamp}.${format}`;
+        const filename = `predictions/${predictionId}-${timestamp}.png`;
 
         // Upload parameters
         const uploadParams = {

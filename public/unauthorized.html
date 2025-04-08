@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORBIDDEN</title>
+    <style>
+        body {
+  margin: 0;
+  font-family: Helvetica;
+  width: 100vw;
+  /* overflow: hidden; */
+  background-color: #ff0000;
+
+}
+
+.section {
+  width: 100vw;
+  height: 100vh;
+}
+
+.text-ctn {
+  margin: 18px;
+}
+
+.marquee {
+  width: 100%;
+  border-bottom: 3px solid #000000;
+  background-color: #000000;
+  white-space: nowrap;
+}
+
+.marquee-text {
+  display: inline-block;
+  width: auto;
+  margin-inline: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #ff0000;
+  animation: scroll 10s linear infinite;
+}
+
+.marquee-text:before {
+  content: "You don't have permission to view this resource.";
+}
+
+@keyframes scroll {
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+#sec-1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ff0000;
+}
+
+#ctn {
+  margin-top: 40px;
+  width: 60vw;
+  height: 60vh;
+  font-size: 30px;
+  font-weight: bold;
+  text-align: center;
+  overflow: hidden;
+}
+
+#forbidden {
+  display: inline-block;
+  padding: 5px 10px 5px 10px;
+  border: 2px solid #000000;
+  border-radius: 8px;
+  font-size: 50px;
+  animation: flash 1s linear infinite;
+}
+
+@keyframes flash {
+  50% {
+    opacity: 0;
+  }
+}
+li{
+    font-size: small;
+    list-style-type: circle;
+}
+ul{
+    text-align: center;
+}
+    </style>
+</head>
+<body>
+    <div id="sec-1" class="section">
+        <div id="ctn">
+          <div class="marquee">
+            <div class="marquee-text"></div><div class="marquee-text"></div><div class="marquee-text"></div>
+          </div>
+      
+          <!-- <div style="font-size: large;" class="text-ctn">POTENTIAL SECURITY POLICY VIOLATION</div> -->
+      
+          <div style="margin-top: 18px;" id="forbidden">Access Denied</div>
+      
+          <div style="font-size: medium;">
+                <p>Your recent activity on our site has triggered a security alert. Your IP has been flagged for potential security violations. Further attempts may result in permanent ban. This may be due to one of the following reasons:</p>
+                <ul>
+                <li>Excessive retry attempts</li>
+                <li>Suspicious activity detected from your IP address</li>
+                <li>Violation of our terms of service</li>
+                </ul>
+                <p>If you believe this is a mistake, please contact our <a href="https://victorle.works" style="text-decoration: none;
+                    color: white;">Admin</a> to resolve the issue.</p>
+          </div>
+      
+          <div class="marquee">
+            <div class="marquee-text"></div><div class="marquee-text"></div><div class="marquee-text"></div>
+          </div>
+        </div>
+      </div>
+</body>
+</html>
