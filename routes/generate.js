@@ -3,7 +3,7 @@ const router = express.Router();
 const replicate = require("../service/replicate");
 const cacheService = require("../service/cacheService");
 const { InputTemplate } = require("../models/inputTemplate");
-const { Generation } = require("../models/generation");
+const  Generation  = require("../models/generation");
 
 
 const webhookHandler = require("./handlers/webhookHandler");
