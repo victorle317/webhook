@@ -68,7 +68,6 @@ router.post("/", authenticate, async (req, res) => {
     //randomly select one inputTemplate
     inputTemplate = inputTemplate[Math.floor(Math.random() * inputTemplate.length)];
 
-    console.log(inputTemplate);
 
     //mapping inputTemplate to the correct field name
     model = inputTemplate.model;

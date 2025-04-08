@@ -5,8 +5,8 @@ const { saveOutputToSpaces } = require('../../service/storage');
 const formatVietnamTime = (utcTime) => {
     const date = new Date(utcTime);
     // Convert to Vietnam timezone (UTC+7)
-    const vietnamTime = new Date(date.getTime() + 7 * 60 * 60 * 1000);
-    return vietnamTime.toLocaleString('vi-VN', {
+    
+    return date.toLocaleString('vi-VN', {
         timeZone: 'Asia/Ho_Chi_Minh',
         year: 'numeric',
         month: '2-digit',
