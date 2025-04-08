@@ -166,7 +166,7 @@ router.post("/", authenticate, async (req, res) => {
     res.status(201).json({
       status: "success",
       prediction_id: prediction.id,
-      statusUrl: `${process.env.MASTER_SERVER_ADDR}/${prediction.id}`, // use for polling status
+      statusUrl: `${process.env.MASTER_SERVER_ADDR}/generate/${prediction.id}`, // use for polling status
     });
     //Note: Extract user data ra 1 object
     //check URL valid
