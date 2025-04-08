@@ -2,12 +2,28 @@ const Generation = require('../../models/generation');
 const cacheService = require('../../service/cacheService');
 const { saveOutputToSpaces } = require('../../service/storage');
 
+const formatVietnamTime = (utcTime) => {
+    const date = new Date(utcTime);
+    // Convert to Vietnam timezone (UTC+7)
+    const vietnamTime = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+    return vietnamTime.toLocaleString('vi-VN', {
+        timeZone: 'Asia/Ho_Chi_Minh',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+};
+
 const webhookHandler = async (req, res) => {
     try {
         const webhookData = req.body;
         const predictionId = webhookData.id;
 
-        console.log('Received webhook:', webhookData);
+        console.log('Received webhook:', webhookData.id);
 
         // Find or create a Generation document
         let generation = await Generation.findOne({ predictionId });
@@ -28,7 +44,7 @@ const webhookHandler = async (req, res) => {
                     started_at: webhookData.started_at
                 });
                 await cacheService.updatePredictionStatus(predictionId, 'starting');
-                
+
                 // Update MongoDB
                 generation.status = 'starting';
                 generation.replicateRawOutput = webhookData;
@@ -39,27 +55,27 @@ const webhookHandler = async (req, res) => {
                 console.log('Prediction processing:', {
                     id: predictionId,
                     model: webhookData.model,
-                    started_at: webhookData.started_at
+                    started_at: formatVietnamTime(webhookData.started_at)
                 });
                 // Update MongoDB
                 generation.status = 'processing';
                 generation.replicateRawOutput = webhookData;
 
                 await generation.save();
-                await cacheService.updatePredictionStatus(predictionId, 'processing',{
-                    replicateRawOutput : webhookData,
-                }); 
-                
+                await cacheService.updatePredictionStatus(predictionId, 'processing', {
+                    replicateRawOutput: webhookData,
+                });
+
                 break;
 
             case 'succeeded':
                 const outputUrl = Array.isArray(webhookData.output)
                     ? webhookData.output[0]
                     : webhookData.output;
-
+                let spacesUrl = null;
                 if (outputUrl) {
                     try {
-                        const spacesUrl = await saveOutputToSpaces(outputUrl, predictionId, webhookData.input.output_format);
+                        spacesUrl = await saveOutputToSpaces(outputUrl, predictionId, webhookData.input.output_format);
                         console.log('Image saved to Spaces:', spacesUrl);
                         // Update MongoDB
                         generation.status = 'succeeded';
@@ -69,9 +85,9 @@ const webhookHandler = async (req, res) => {
 
                         await generation.save();
                         await cacheService.updatePredictionStatus(predictionId, 'succeeded', {
-                            url : spacesUrl,
-                            replicateUrl : outputUrl,
-                            replicateRawOutput : webhookData,
+                            url: spacesUrl,
+                            replicateUrl: outputUrl,
+                            replicateRawOutput: webhookData,
                             spacesUrl
                         });
 
@@ -87,20 +103,21 @@ const webhookHandler = async (req, res) => {
 
                         await cacheService.updatePredictionStatus(predictionId, 'succeeded_with_error', {
                             output: webhookData.output,
-                            error : storageError.message,
-                            replicateUrl : outputUrl,
-                            replicateRawOutput : webhookData,
+                            error: storageError.message,
+                            replicateUrl: outputUrl,
+                            replicateRawOutput: webhookData,
                         });
 
 
                     }
                 }
 
+
                 console.log('Prediction succeeded:', {
                     id: predictionId,
                     model: webhookData.model,
-                    output: webhookData.output,
-                    input: webhookData.input
+                    spacesUrl: spacesUrl,
+                    completed_at: formatVietnamTime(webhookData.completed_at)
                 });
                 break;
 
