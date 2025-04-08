@@ -143,7 +143,7 @@ router.post("/", authenticate, async (req, res) => {
       model: payload.model,
       version: payload.version,
       input: payload.input,
-      webhook: "https://dolphin-app-zw5h6.ondigitalocean.app/webhook",
+      webhook: `${process.env.MASTER_SERVER_ADDR}/generate/webhook`,
       webhook_events_filter: ["start", "completed"], // optional
     });
 
