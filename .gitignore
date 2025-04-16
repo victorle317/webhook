@@ -16,7 +16,6 @@ oldGit
 mock
 queue/queue.js
 queue/setupEvent.js
-validator
 worker
 models/mockInputData.json
 
