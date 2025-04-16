@@ -46,6 +46,7 @@ const generateHandler = async (req, res) => {
     //   style: [...req.body.style]
     // }
     let inputTemplate = await InputTemplate.find({});
+    let temp = [...inputTemplate]
 
     // filter out by gender using classification field
     if (req.body.gender) {
@@ -71,8 +72,13 @@ const generateHandler = async (req, res) => {
     //randomly select one inputTemplate
     inputTemplate = inputTemplate[Math.floor(Math.random() * inputTemplate.length)];
 
+    if (!inputTemplate) {
+      inputTemplate = temp[Math.floor(Math.random() * temp.length)];
+    }
+    
 
     //mapping inputTemplate to the correct field name
+    // handle if inputTemplate.modelName is return cannot read property of undefined
     modelName = inputTemplate.modelName || "";
     model = inputTemplate.model || "";
     version = inputTemplate.version || "";
