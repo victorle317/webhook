@@ -1,7 +1,15 @@
 const { InputTemplate } = require('../../models/inputTemplate');
 const Model = require('../../models/model');
+const { validationResult } = require('express-validator');
 
 const addTemplateHandler = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+        status: 'Error',
+        error: errors.array()
+        });
+    }
     try {
         // Check if the request body is an array
         if (Array.isArray(req.body)) {
@@ -230,6 +238,13 @@ const getTemplateByIdHandler = async (req, res) => {
 }
 
 const updateTemplateByIdHandler = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+        status: 'Error',
+        error: errors.array()
+        });
+    }
     try {
         const template = await InputTemplate.findByIdAndUpdate(
             req.params.id,
