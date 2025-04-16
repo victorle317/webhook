@@ -5,6 +5,7 @@ mongoose.Schema.Types.String.checkRequired(v => v != null)
 
 
 const generationSchema = new mongoose.Schema({
+    modelName: String,
     predictionId: String,
     status: String,
     error: String,
@@ -49,6 +50,20 @@ generationSchema.index({ predictionId: 1 });
 generationSchema.index({ status: 1 });
 generationSchema.index({ url: 1 });
 generationSchema.index({ createdAt: -1 });
+
+//create a static method to reduce the number of fields in the for unauthenticated users response
+generationSchema.statics.reduceFields = function(generation) {
+    return {
+        modelName: generation.modelName,
+        generation_id: generation.predictionId,
+        status: generation.status,
+        error: generation.error,
+        url: generation.url,
+        prompt: generation.prompt,
+        userInput: generation.userInput,
+        chosenSettings: {...generation.chosenSettings, lora_weights: null,model:null},
+    };
+};
 
 
 const Generation = mongoose.model('Generation', generationSchema);

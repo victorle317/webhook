@@ -3,6 +3,10 @@ const mongoose = require('mongoose');
 mongoose.Schema.Types.String.checkRequired(v => v != null)
 // Schema for the input dictionary/template that admins can update
 const inputTemplateSchema = new mongoose.Schema({
+    modelName: {
+        type: String,
+        required: true
+    },
     model: {
         type: String,
         required: true
@@ -24,6 +28,9 @@ const inputTemplateSchema = new mongoose.Schema({
     isSelfTrained: {
         type: Boolean,
         default: null
+    },
+    image: {
+        type: String,
     },
     classification: {
         clothing_type: {
@@ -84,7 +91,25 @@ inputTemplateSchema.index({ 'classification.clothing_type': 1 });
 inputTemplateSchema.index({ 'classification.style': 1 });
 // inputTemplateSchema.index({ model: 1 });
 
+//create a static method to reduce the number of fields in the for unauthenticated users response
 
+inputTemplateSchema.statics.reduceFields = function(template) {
+    return {
+        template_id: template._id,
+        modelName: template.modelName,
+        go_fast: template.go_fast,
+        image: template.image,
+        classification: template.classification,
+        prompt: template.prompt,
+        aspect_ratio: template.aspect_ratio,
+        output_quality: template.output_quality,
+        output_format: template.output_format,
+        prompt_strength: template.prompt_strength,
+        lora_scale: template.lora_scale,
+        num_inference_steps: template.num_inference_steps,
+        guidance_scale: template.guidance_scale,
+    };
+};
 // Create models using the schemas
 const InputTemplate = mongoose.model('InputTemplate', inputTemplateSchema);
 

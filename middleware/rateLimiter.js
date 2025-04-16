@@ -1,17 +1,9 @@
 const { rateLimit } = require('express-rate-limit')
 const { RedisStore } = require('rate-limit-redis')
-const RedisClient = require('ioredis')
-const { URL } = require('url');
 
-const url = new URL(process.env.REDIS_URL);
+const client = require('../queue/redisClient');
 
-const client = new RedisClient({
-	host: url.hostname,
-	port: url.port,
-	user: process.env.REDIS_USER,
-	password: process.env.REDIS_PWD,
-	tls:true
-})
+
 async function listAllKeys() {
     const keys = await client.keys('*');
     console.log(keys);
@@ -36,7 +28,7 @@ class RateLimiter {
 				max: 1000, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
 				standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
 				legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-				message: 'Excessive request rate detected. Your IP has been flagged for potential security violations. Further attempts may result in permanent ban. For more details, please contact <a href="https://victorle.works">Admin</a>',
+				message: 'Excessive request rate detected. Your IP has been flagged for potential security violations. Further attempts may result in permanent ban. For more details, please contact <a href="https://victorle.work">Admin</a>',
 				store: new RedisStore({
 					sendCommand: (...args) => client.call(...args),
 				}),

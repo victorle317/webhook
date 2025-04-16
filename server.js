@@ -51,11 +51,43 @@ var server = http.createServer(app);
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port,() => {
-  console.log(`Server is running on port ${port}`);
- });
-server.on('error', onError);
-server.on('listening', onListening);
+async function startServer() {
+  try {
+    // const swaggerPath = path.join(__dirname, './swagger/swagger.yaml');
+    // const swaggerPath2 = path.join(__dirname, './swagger/swagger.json');
+    // const swaggerPath3 = path.join(__dirname, './swagger/swagger1.yaml');
+    // // console.log('Loading Swagger from:', swaggerPath);
+    // // const swaggerDoc = await SwaggerParser.dereference(swaggerPath);
+
+    // // //save to file
+    // // fs.writeFileSync(swaggerPath2, JSON.stringify(swaggerDoc, null, 2));
+    // // fs.writeFileSync(swaggerPath3, YAML1.stringify(swaggerDoc));
+
+    // const file  = fs.readFileSync(swaggerPath3, 'utf8')
+    // const swaggerDocument = yaml.parse(file)
+    // app.setSwaggerDocs(swaggerDocument);
+    app._router.stack.forEach((r) => {
+      if (r.route && r.route.path) {
+        console.log('📌 Registered route:', r.route.path);
+      }
+    });
+    
+    server.listen(port, () => {
+      
+      console.log(`✅ Server running at http://localhost:${port}`);
+      console.log(`📘 Swagger UI: http://localhost:${port}/api`);
+    });
+    server.on('error', onError);
+    server.on('listening', onListening);
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
+
+
 
 /**
  * Normalize a port into a number, string, or false.
