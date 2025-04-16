@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const { addTemplateHandler, getTemplateHandler, getTemplateByIdHandler, updateTemplateByIdHandler, deleteTemplateByIdHandler, getTemplateStatisticsHandler } = require('./handlers/templateHandler');
-const { inputTemplateValidator } = require('../validator/inputTemplateValidator');
+const { inputTemplateValidator } = require('../validator/inputTemplateValidator.js');
 const modelRoutes = require('./modelRoutes');
 const authenticate = require('../middleware/authenticate');
 
