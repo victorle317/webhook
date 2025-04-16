@@ -36,7 +36,7 @@ const generateHandler = async (req, res) => {
     style: []
   }
   // cần có function để convert payload prompt của các admin thành các model, version và lora weight link tương ứng
-  if (req.body.isDebug == "true") {
+  if (true) {
     // query random inputTemplate
     console.log("querying random inputTemplate");
     // userInput = {
