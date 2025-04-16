@@ -73,13 +73,13 @@ const generateHandler = async (req, res) => {
 
 
     //mapping inputTemplate to the correct field name
-    modelName = inputTemplate.modelName;
-    model = inputTemplate.model;
-    version = inputTemplate.version;
-    lora_weights = inputTemplate.weightUrl;
-    prompt = inputTemplate.prompt;
-    aspect_ratio = inputTemplate.aspect_ratio;
-    output_quality = inputTemplate.output_quality;
+    modelName = inputTemplate.modelName || "";
+    model = inputTemplate.model || "";
+    version = inputTemplate.version || "";
+    lora_weights = inputTemplate.weightUrl || "";
+    prompt = inputTemplate.prompt || "";
+    aspect_ratio = inputTemplate.aspect_ratio || "";
+    output_quality = inputTemplate.output_quality || "";
     output_format = inputTemplate.output_format;
     prompt_strength = inputTemplate.prompt_strength;
     lora_scale = inputTemplate.lora_scale;
@@ -350,11 +350,11 @@ const testGenerateByIdHandler = async (req, res) => {
 
     // Save to database and cache
     const newGeneration = new Generation({
-      modelName: inputTemplate.modelName,
+      modelName: inputTemplate.modelName || "",
       predictionId: prediction.id,
       status: prediction.status,
       prompt: inputTemplate.prompt,
-      model: inputTemplate.model,
+      model: inputTemplate.model || "",
       image: inputTemplate.image || "",
       weightUrl: inputTemplate.weightUrl || "",
       chosenSettings: payload.input,

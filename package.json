@@ -6,7 +6,7 @@
   },
   "private": true,
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.1.1",
