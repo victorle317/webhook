@@ -5,23 +5,22 @@
  *     GenerationInput:
  *       type: object
  *       properties:
- *         isDebug:
- *           type: string
- *           enum: ['true', 'false']
- *           description: Debug mode flag
  *         gender:
  *           type: string
  *           description: Filter by gender classification
+ *           example: "male"
  *         clothing_type:
  *           type: string
  *           description: Filter by clothing type
+ *           example: "giaolinhnam"
  *         background:
  *           type: string
  *           description: Filter by background type
+ *           example: "hanoi"
  *         style:
  *           type: string
  *           description: Filter by style
- * 
+ *           example: "red"
  *     GenerationResponse:
  *       type: object
  *       properties:
