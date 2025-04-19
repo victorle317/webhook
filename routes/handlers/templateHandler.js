@@ -20,6 +20,12 @@ const addTemplateHandler = async (req, res) => {
             // Check each template's modelName
             for (const templateData of req.body) {
                 const modelExists = await Model.findOne({ modelName: templateData.modelName });
+
+                let extraLoraExists = null;
+                if(templateData.extra_lora){
+                    extraLoraExists = await Model.findOne({ modelName: templateData.extra_lora });
+                }
+
                 if (!modelExists) {
                     invalidModels.push(templateData.modelName);
                     continue;
@@ -36,17 +42,17 @@ const addTemplateHandler = async (req, res) => {
                     model = modelExists.modelName;
                 }
 
-                templatesData.push({
+                let temp ={
                     // Required base fields
                     modelName: modelName,
                     model: model,
                     version: modelExists.version || "",
                     weightUrl: weightUrl,
                     isSelfTrained: modelExists.isSelfTrained,
-
+                
                     // go_fast: templateData.go_fast || false,
                     image: templateData.image || "",
-
+                
                     // Classification mapping
                     classification: {
                         clothing_type: templateData.classification?.clothing_type || [],
@@ -54,18 +60,25 @@ const addTemplateHandler = async (req, res) => {
                         gender: templateData.classification?.gender || [],
                         style: templateData.classification?.style || []
                     },
-
+                
                     // Generation parameters
                     prompt: templateData.prompt,
                     aspect_ratio: templateData.aspect_ratio,
                     go_fast: templateData.go_fast || false,
                     output_quality: templateData.output_quality,
                     output_format: templateData.output_format,
-                    prompt_strength: templateData.prompt_strength,
-                    lora_scale: templateData.lora_scale,
-                    num_inference_steps: templateData.num_inference_steps,
-                    guidance_scale: templateData.guidance || templateData.guidance_scale
-                });
+                                    prompt_strength: templateData.prompt_strength,
+                                    lora_scale: templateData.lora_scale,
+                                    num_inference_steps: templateData.num_inference_steps,
+                                    guidance_scale: templateData.guidance || templateData.guidance_scale
+                                }
+
+                if(extraLoraExists){
+                    temp.extra_lora = extraLoraExists.modelName;
+                    temp.extra_lora_scale = templateData.extra_lora_scale;
+                }
+
+                templatesData.push(temp);
             }
 
             if (templatesData.length === 0) {

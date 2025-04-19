@@ -65,6 +65,14 @@ const inputTemplateSchema = new mongoose.Schema({
         type: String,
         default: "webp"
     },
+    extra_lora: {
+        type: String,
+        default: ""
+    },
+    extra_lora_scale: {
+        type: Number,
+        default: 1.3
+    },
     prompt_strength: {
         type: Number,
         default: 0.8

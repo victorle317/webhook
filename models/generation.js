@@ -19,6 +19,18 @@ const generationSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    extra_lora: {
+        type: String,
+        default: ""
+    },
+    extra_lora_scale: {
+        type: Number,
+        default: 1.3
+    },
+    prompt_strength: {
+        type: Number,
+        default: 0.8
+    },
     weightUrl: {
         type: String,
         required: true
@@ -60,6 +72,9 @@ generationSchema.statics.reduceFields = function(generation) {
         error: generation.error,
         url: generation.url,
         prompt: generation.prompt,
+        extra_lora: generation.extra_lora,
+        extra_lora_scale: generation.extra_lora_scale,
+        prompt_strength: generation.prompt_strength,
         userInput: generation.userInput,
         chosenSettings: {...generation.chosenSettings, lora_weights: null,model:null},
     };

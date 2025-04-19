@@ -11,7 +11,6 @@ const generateHandler = async (req, res) => {
   //     messages: [{ text: `sai payload` }]
   //   });
   // }
-  console.log(req.body.isDebug);
 
   let {
     model,
@@ -75,24 +74,24 @@ const generateHandler = async (req, res) => {
     if (!inputTemplate) {
       inputTemplate = temp[Math.floor(Math.random() * temp.length)];
     }
-    
-
     //mapping inputTemplate to the correct field name
     // handle if inputTemplate.modelName is return cannot read property of undefined
-    modelName = inputTemplate.modelName || "";
-    model = inputTemplate.model || "";
-    version = inputTemplate.version || "";
-    lora_weights = inputTemplate.weightUrl || "";
-    prompt = inputTemplate.prompt || "";
-    aspect_ratio = inputTemplate.aspect_ratio || "";
-    output_quality = inputTemplate.output_quality || "";
+    modelName = inputTemplate.modelName ;
+    model = inputTemplate.model ;
+    version = inputTemplate.version ;
+    lora_weights = inputTemplate.weightUrl ;
+    prompt = inputTemplate.prompt ;
+    aspect_ratio = inputTemplate.aspect_ratio ;
+    output_quality = inputTemplate.output_quality ;
     output_format = inputTemplate.output_format;
     prompt_strength = inputTemplate.prompt_strength;
     lora_scale = inputTemplate.lora_scale;
     num_inference_steps = inputTemplate.num_inference_steps;
     guidance_scale = inputTemplate.guidance_scale;
     go_fast = inputTemplate.go_fast;
-    image = inputTemplate.image || "";
+    extra_lora = inputTemplate.extra_lora;
+    extra_lora_scale = inputTemplate.extra_lora_scale;
+    image = inputTemplate.image ;
   }
 
   // Nhập options từ FrontEnd (style cụ thể hoặc random)
@@ -134,6 +133,8 @@ const generateHandler = async (req, res) => {
       image: image,
       model: "dev",
       prompt: prompt,
+      extra_lora: extra_lora,
+      extra_lora_scale: extra_lora_scale,
       go_fast: go_fast,
       lora_scale: lora_scale,
       megapixels: "1",
@@ -143,9 +144,13 @@ const generateHandler = async (req, res) => {
       guidance_scale: guidance_scale,
       output_quality: output_quality,
       prompt_strength: prompt_strength,
-      extra_lora_scale: 1,
       num_inference_steps: num_inference_steps
     }
+  }
+
+  if (!extra_lora) {
+    delete payload.input.extra_lora;
+    delete payload.input.extra_lora_scale;
   }
 
   if (image == "") {
@@ -169,6 +174,8 @@ const generateHandler = async (req, res) => {
       predictionId: prediction.id,
       status: prediction.status,
       prompt: prompt,
+      extra_lora: extra_lora,
+      extra_lora_scale: extra_lora_scale,
       model: model,
       image: image,
       weightUrl: lora_weights || "",
@@ -336,11 +343,15 @@ const testGenerateByIdHandler = async (req, res) => {
         guidance_scale: inputTemplate.guidance_scale,
         output_quality: inputTemplate.output_quality,
         prompt_strength: inputTemplate.prompt_strength,
-        extra_lora_scale: 1,
+        extra_lora: inputTemplate.extra_lora,
+        extra_lora_scale: inputTemplate.extra_lora_scale,
         num_inference_steps: inputTemplate.num_inference_steps
       };
     }
-
+    if (!inputTemplate.extra_lora) {
+      delete payload.input.extra_lora;
+      delete payload.input.extra_lora_scale;
+    }
     if (!inputTemplate.image) {
       delete payload.input.image;
     }
