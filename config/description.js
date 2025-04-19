@@ -78,6 +78,8 @@ Dùng để **tạo hoặc cập nhật một template sinh ảnh** sử dụng 
 | \`image\`               | ❌       | string (URL)  | Ảnh gốc (nếu dùng kiểu img2img) |
 | \`classification\`      | ✅       | object        | Thông tin phân loại: trang phục, bối cảnh, giới tính, phong cách |
 | \`prompt\`              | ✅       | string        | Nội dung mô tả ảnh cần sinh |
+| \`extra_lora\`          | ❌       | string        | Tên Background Model Huế, Văn Miếu,... phụ (không bắt buộc) |
+| \`extra_lora_scale\`    | ❌       | number        | Mức độ ảnh hưởng của LoRA phụ (không bắt buộc) |
 | \`aspect_ratio\`        | ✅       | string        | Tỉ lệ ảnh đầu ra, mặc định \`1:1\` |
 | \`output_quality\`      | ✅       | number        | Chất lượng ảnh (0–100) |
 | \`output_format\`       | ✅       | string        | Định dạng ảnh đầu ra: \`jpg\`, \`webp\`, ... |
