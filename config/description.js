@@ -17,7 +17,8 @@ const description = `
 
 1. **Lấy API Key** từ admin
 2. Gửi yêu cầu kèm API key trong header để xác thực
-3. Gọi các endpoint phù hợp để tạo ảnh
+3. Gửi request tạo ảnh đến \`/generate\` để tạo ảnh
+4. Gọi \`/generate/{generation_id}\` để lấy thông tin về request đã gửi (có status, output, ...). Kết quả tạo ảnh sẽ được lấy từ đây (status: \`succeed\`, url: \`link ảnh\`).
 
 ---
 

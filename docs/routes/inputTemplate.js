@@ -13,7 +13,9 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/InputTemplateResponse'
+ *             type: array
+ *             items:
+ *               $ref: '#/components/schemas/InputTemplate'
  *     responses:
  *       201:
  *         description: Template(s) created successfully

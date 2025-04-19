@@ -32,6 +32,14 @@
  *           type: string
  *           description: Reference image URL | Ảnh gốc đầu vào (nếu có, thường dùng trong img2img)
  *           example: "https://i.pinimg.com/564x/4d/8d/8d/4d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d.jpg"
+ *         extra_lora:
+ *           type: string
+ *           description: Extra LoRA model name | Tên style phụ (nếu có) không bắt buộc
+ *           example: ""
+ *         extra_lora_scale:
+ *           type: number
+ *           description: Extra LoRA scale | Mức độ ảnh hưởng của LoRA phụ (nếu có)
+ *           example: 1.3
  *         classification:
  *           type: object
  *           required:

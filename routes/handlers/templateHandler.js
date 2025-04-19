@@ -110,6 +110,10 @@ const addTemplateHandler = async (req, res) => {
             // Process single template
             // Check if modelName exists
             const modelExists = await Model.findOne({ modelName: req.body.modelName });
+            let extraLoraExists = null;
+            if(req.body.extra_lora){
+                extraLoraExists = await Model.findOne({ modelName: req.body.extra_lora });
+            }
             if (!modelExists) {
                 return res.status(400).json({
                     message: 'Model not found',
@@ -128,36 +132,41 @@ const addTemplateHandler = async (req, res) => {
             } else {
                 model = modelExists.modelName;
             }
+ let temp = {
+    // Required base fields
+    modelName: modelName,
+    model: model,
+    version: modelExists.version || "",
+    weightUrl: weightUrl,
+    isSelfTrained: modelExists.isSelfTrained,
 
-            const inputTemplate = new InputTemplate({
-                // Required base fields
-                modelName: modelName,
-                model: model,
-                version: modelExists.version || "",
-                weightUrl: weightUrl,
-                isSelfTrained: modelExists.isSelfTrained,
+    image: req.body.image || "",
 
-                image: req.body.image || "",
+    // Classification mapping
+    classification: {
+        clothing_type: req.body.classification?.clothing_type || [],
+        background: req.body.classification?.background || [],
+        gender: req.body.classification?.gender || [],
+        style: req.body.classification?.style || []
+    },
 
-                // Classification mapping
-                classification: {
-                    clothing_type: req.body.classification?.clothing_type || [],
-                    background: req.body.classification?.background || [],
-                    gender: req.body.classification?.gender || [],
-                    style: req.body.classification?.style || []
-                },
+    // Generation parameters
+    prompt: req.body.prompt,
+    go_fast: req.body.go_fast || false,
+    aspect_ratio: req.body.aspect_ratio,
+    output_quality: req.body.output_quality,
+    output_format: req.body.output_format,
+    prompt_strength: req.body.prompt_strength,
+    lora_scale: req.body.lora_scale,
+    num_inference_steps: req.body.num_inference_steps,
+    guidance_scale: req.body.guidance || req.body.guidance_scale
+}
+if(extraLoraExists){
+    temp.extra_lora = extraLoraExists.modelName;
+    temp.extra_lora_scale = req.body.extra_lora_scale;
+}
 
-                // Generation parameters
-                prompt: req.body.prompt,
-                go_fast: req.body.go_fast || false,
-                aspect_ratio: req.body.aspect_ratio,
-                output_quality: req.body.output_quality,
-                output_format: req.body.output_format,
-                prompt_strength: req.body.prompt_strength,
-                lora_scale: req.body.lora_scale,
-                num_inference_steps: req.body.num_inference_steps,
-                guidance_scale: req.body.guidance || req.body.guidance_scale
-            });
+            const inputTemplate = new InputTemplate(temp);
 
             const savedTemplate = await inputTemplate.save();
             if (req.isAdmin) {
